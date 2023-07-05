@@ -89,6 +89,15 @@ impl BFInterpreter {
         }
     }
 
+    pub fn run_from_file(&mut self, file_path: &str) -> String {
+        let instructions = match std::fs::read_to_string(file_path) {
+            Ok(v) => v,
+            Err(_) => panic!("Error reading file {}", file_path),
+        };
+
+        self.run(&instructions)
+    }
+
     pub fn run(&mut self, instructions: &str) -> String {
         self.init(instructions);
         
@@ -253,6 +262,10 @@ fn main() {
     };
     let mut custom_interpreter = BFInterpreter::new(Some(config));
     let output = custom_interpreter.run("WWWDWWWA(DOAS)");
+    println!("{}", output);
+
+    // Print from file
+    let output = interpreter.run_from_file("./file.bf");
     println!("{}", output);
     
     // Print Hello World
