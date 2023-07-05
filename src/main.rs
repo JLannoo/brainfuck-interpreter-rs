@@ -70,26 +70,20 @@ impl BFInterpreter {
 
         Self {
             instruction_pointer: 0,
-            instructions_map: match custom_instructions {
-                None => HashMap::from([
-                    ('>', Instruction::PointerInc),
-                    ('<', Instruction::PointerDec),
-                    ('+', Instruction::ByteInc),
-                    ('-', Instruction::ByteDec),
-                    ('.', Instruction::Output),
-                    (',', Instruction::Input),
-                    ('[', Instruction::OpenLoop),
-                    (']', Instruction::CloseLoop),
-                ]),
-                Some(v) => v,
-            },
+            instructions_map: custom_instructions.unwrap_or(HashMap::from([
+                ('>', Instruction::PointerInc),
+                ('<', Instruction::PointerDec),
+                ('+', Instruction::ByteInc),
+                ('-', Instruction::ByteDec),
+                ('.', Instruction::Output),
+                (',', Instruction::Input),
+                ('[', Instruction::OpenLoop),
+                (']', Instruction::CloseLoop),
+            ])),
             instructions: Vec::new(),
             current_instruction: Instruction::Output,
             data_pointer: 0,
-            data: vec![0; match tape_size {
-                None => 1024,
-                Some(v) => v,
-            }],
+            data: vec![0; tape_size.unwrap_or(1024)],
             loop_stack: Vec::new(),
             output: Vec::new(),
         }
@@ -108,7 +102,7 @@ impl BFInterpreter {
         while self.instruction_pointer < self.instructions.len() {
             self.current_instruction = match self.instructions.get(self.instruction_pointer) {
                 Some(v) => *v,
-                None => panic!("Error gettin instruction"),
+                None => panic!("Error getting instruction"),
             };
 
             // println!("Instruction: {:#?}", self);
@@ -123,6 +117,7 @@ impl BFInterpreter {
                 Instruction::OpenLoop => self.jump(),
                 Instruction::CloseLoop => self.jump(),
             }
+
             self.instruction_pointer += 1;
         }
 
@@ -211,9 +206,10 @@ impl BFInterpreter {
         self.instruction_pointer = 0;
         self.instructions = instructions
             .chars()
-            .map(|c| match self.instructions_map.get(&c) {
+            .enumerate()
+            .map(|(i,c)| match self.instructions_map.get(&c) {
                 Some(v) => *v,
-                None => panic!("Invalid instruction"),
+                None => panic!("Invalid instruction ({}) at index {}", c, i),
             })
             .collect();
             
