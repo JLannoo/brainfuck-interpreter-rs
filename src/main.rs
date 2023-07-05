@@ -125,24 +125,30 @@ impl BFInterpreter {
     }
 
     fn pointer_inc(&mut self) {
-        self.data_pointer += 1;
+        match self.data.get(self.data_pointer + 1) {
+            Some(_) => self.data_pointer += 1,
+            None => panic!("Out of bounds trying to increment pointer to {} at index {}", self.data_pointer + 1, self.instruction_pointer),
+        }
     }
 
     fn pointer_dec(&mut self) {
-        self.data_pointer -= 1;
+        match self.data.get(self.data_pointer - 1) {
+            Some(_) => self.data_pointer -= 1,
+            None => panic!("Out of bounds trying to decrement pointer to {} at index {}", self.data_pointer + 1, self.instruction_pointer),
+        }
     }
 
     fn byte_inc(&mut self) {
-        match self.data.get(self.data_pointer) {
-            None => self.data[self.data_pointer] = 1,
-            Some(v) => self.data[self.data_pointer] = v+1,
+        match self.data[self.data_pointer].checked_add(1) {
+            Some(v) => self.data[self.data_pointer] = v,
+            None => self.data[self.data_pointer] = 0,
         }
     }
 
     fn byte_dec(&mut self) {
-        match self.data.get(self.data_pointer) {
-            None => self.data[self.data_pointer] = 255,
-            Some(v) => self.data[self.data_pointer] = v-1,
+        match self.data[self.data_pointer].checked_sub(1) {
+            Some(v) => self.data[self.data_pointer] = v,
+            None => self.data[self.data_pointer] = u8::MAX,
         }
     }
 
