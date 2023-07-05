@@ -182,22 +182,29 @@ impl BFInterpreter {
             Instruction::OpenLoop => {
                 match self.data[self.data_pointer] {
                     // If 0 jump to the end of the loop, else continue
-                    0 => {
-                        let mut loopdepth = self.loop_stack.len();
-                        while loopdepth > 0 {
-                            self.instruction_pointer += 1;
-                            match self.instructions[self.instruction_pointer] {
-                                Instruction::OpenLoop => loopdepth += 1,
-                                Instruction::CloseLoop => loopdepth -= 1,
-                                _ => (),
-                            }
-                        }
-                    },
+                    0 => self.instruction_pointer = self.get_loop_end(),
                     _ => self.loop_stack.push(StackItem { index: self.instruction_pointer }),
                 }
             },
             _ => panic!("SHOULD NOT HAVE JUMPED")
         }
+    }
+
+    fn get_loop_end(&self) -> usize {
+        let mut loopdepth = self.loop_stack.len();
+        let mut pointer = self.instruction_pointer;
+
+        while loopdepth > 0 {
+            pointer += 1;
+
+            match self.instructions[pointer] {
+                Instruction::OpenLoop => loopdepth += 1,
+                Instruction::CloseLoop => loopdepth -= 1,
+                _ => (),
+            }
+        };
+
+        pointer
     }
 
     fn init(&mut self, instructions: &str) {
